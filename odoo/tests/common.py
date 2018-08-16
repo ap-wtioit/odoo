@@ -24,7 +24,6 @@ import threading
 import time
 import itertools
 import unittest
-import websocket
 import werkzeug.urls
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -41,6 +40,13 @@ try:
     from itertools import zip_longest as izip_longest
 except ImportError:
     from itertools import izip_longest
+
+try:
+    import websocket
+except ImportError:
+    # chrome headless tests will be skipped
+    websocket = None
+
 try:
     from xmlrpc import client as xmlrpclib
 except ImportError:
@@ -261,6 +267,9 @@ class SavepointCase(SingleTransactionCase):
 class ChromeBrowser():
 
     def __init__(self):
+        if websocket is None:
+            _logger.warning("websocket-client module is not installed")
+            raise unittest.SkipTest("websocket-client module is not installed")
         self.devtools_port = PORT + 2
         self.ws_url = ''  # WebSocketUrl
         self.ws = None  # websocket
