@@ -8,6 +8,7 @@ import base64
 import collections
 import errno
 import glob
+import inspect
 import importlib
 import json
 import logging
@@ -29,6 +30,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from lxml import etree
 from pprint import pformat
+from unittest.mock import patch
 
 import requests
 from decorator import decorator
@@ -175,6 +177,102 @@ class BaseCase(TreeCase):
                 func(*args, **kwargs)
         else:
             return self._assertRaises(exception)
+
+    @contextmanager
+    def assertQueryCount(self, default=0, **counters):
+        """ Context manager that counts queries. It may be invoked either with
+            one value, or with a set of named arguments like ``login=value``::
+
+                with self.assertQueryCount(42):
+                    ...
+
+                with self.assertQueryCount(admin=3, demo=5):
+                    ...
+
+            The second form is convenient when used with :func:`users`.
+        """
+        if self.warm:
+            # mock random in order to avoid random bus gc
+            with self.subTest(), patch('random.random', lambda: 1):
+                login = self.env.user.login
+                expected = counters.get(login, default)
+                count0 = self.cr.sql_log_count
+                yield
+                count = self.cr.sql_log_count - count0
+                if count != expected:
+                    # add some info on caller to allow semi-automatic update of query count
+                    frame, filename, linenum, funcname, lines, index = inspect.stack()[2]
+                    if "/odoo/addons/" in filename:
+                        filename = filename.rsplit("/odoo/addons/", 1)[1]
+                    if count > expected:
+                        msg = "Query count more than expected for user %s: %d > %d in %s at %s:%s"
+                        self.fail(msg % (login, count, expected, funcname, filename, linenum))
+                    else:
+                        logger = logging.getLogger(type(self).__module__)
+                        msg = "Query count less than expected for user %s: %d < %d in %s at %s:%s"
+                        logger.info(msg, login, count, expected, funcname, filename, linenum)
+        else:
+            yield
+
+    def assertRecordValues(self, records, expected_values):
+        ''' Compare a recordset with a list of dictionaries representing the expected results.
+        This method performs a comparison element by element based on their index.
+        Then, the order of the expected values is extremely important.
+
+        Note that:
+          - Comparison between falsy values is supported: False match with None.
+          - Comparison between monetary field is also treated according the currency's rounding.
+          - Comparison between x2many field is done by ids. Then, empty expected ids must be [].
+          - Comparison between many2one field id done by id. Empty comparison can be done using any falsy value.
+
+        :param records:               The records to compare.
+        :param expected_values:       List of dicts expected to be exactly matched in records
+        '''
+
+        def _compare_candidate(record, candidate):
+            ''' Return True if the candidate matches the given record '''
+            for field_name in candidate.keys():
+                record_value = record[field_name]
+                candidate_value = candidate[field_name]
+                field_type = record._fields[field_name].type
+                if field_type == 'monetary':
+                    # Compare monetary field.
+                    currency_field_name = record._fields[field_name]._related_currency_field
+                    record_currency = record[currency_field_name]
+                    if record_currency.compare_amounts(candidate_value, record_value)\
+                            if record_currency else candidate_value != record_value:
+                        return False
+                elif field_type in ('one2many', 'many2many'):
+                    # Compare x2many relational fields.
+                    # Empty comparison must be an empty list to be True.
+                    if set(record_value.ids) != set(candidate_value):
+                        return False
+                elif field_type == 'many2one':
+                    # Compare many2one relational fields.
+                    # Every falsy value is allowed to compare with an empty record.
+                    if (record_value or candidate_value) and record_value.id != candidate_value:
+                        return False
+                elif (candidate_value or record_value) and record_value != candidate_value:
+                    # Compare others fields if not both interpreted as falsy values.
+                    return False
+            return True
+
+        def _format_message(records, expected_values):
+            ''' Return a formatted representation of records/expected_values. '''
+            all_records_values = records.read(list(expected_values[0].keys()), load=False)
+            msg1 = '\n'.join(pprint.pformat(dic) for dic in all_records_values)
+            msg2 = '\n'.join(pprint.pformat(dic) for dic in expected_values)
+            return 'Current values:\n\n%s\n\nExpected values:\n\n%s' % (msg1, msg2)
+
+        # if the length or both things to compare is different, we can already tell they're not equal
+        if len(records) != len(expected_values):
+            msg = 'Wrong number of records to compare: %d != %d.\n\n' % (len(records), len(expected_values))
+            self.fail(msg + _format_message(records, expected_values))
+
+        for index, record in enumerate(records):
+            if not _compare_candidate(record, expected_values[index]):
+                msg = 'Record doesn\'t match expected values at index %d.\n\n' % index
+                self.fail(msg + _format_message(records, expected_values))
 
     def shortDescription(self):
         doc = self._testMethodDoc
@@ -688,10 +786,10 @@ def users(*logins):
                 for user in self.env['res.users'].search([('login', 'in', list(logins))])
             }
             for login in logins:
-                # switch user
-                self.uid = user_id[login]
-                # execute func
-                func(*args, **kwargs)
+                with self.subTest(login=login):
+                    # switch user and execute func
+                    self.uid = user_id[login]
+                    func(*args, **kwargs)
         finally:
             self.uid = old_uid
 
