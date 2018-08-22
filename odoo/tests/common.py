@@ -7,24 +7,25 @@ helpers and classes to write tests.
 import base64
 import importlib
 import inspect
-import itertools
 import json
 import logging
 import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import unittest
+import urllib2
 from contextlib import contextmanager
 
+import itertools
 import requests
-import threading
 import time
-import urllib2
 import werkzeug
 import werkzeug.urls
 from datetime import datetime
 from decorator import decorator
+
 try:
     from unittest.mock import patch
 except ImportError:
@@ -551,13 +552,15 @@ class ChromeBrowser():
         params = {'name': name, 'value': value, 'path': path, 'domain': domain}
         self._websocket_send('Network.setCookie', params=params)
 
-    def _wait_ready(self, ready_code, timeout=10):
+    def _wait_ready(self, ready_code, timeout=60):
         _logger.info('Evaluate ready code "%s"' % ready_code)
         awaited_result = {'result': {'type': 'boolean', 'value': True}}
         ready_id = self._websocket_send('Runtime.evaluate', params={'expression': ready_code})
         last_bad_res = ''
         start_time = time.time()
-        while time.time() - start_time < timeout:
+        tdiff = time.time() - start_time
+        has_exceeded = False
+        while tdiff < timeout:
             try:
                 res = json.loads(self.ws.recv())
             except websocket.WebSocketTimeoutException:
@@ -568,6 +571,11 @@ class ChromeBrowser():
                 else:
                     last_bad_res = res
                     ready_id = self._websocket_send('Runtime.evaluate', params={'expression': ready_code})
+            tdiff = time.time() - start_time
+            if tdiff >= 2 and not has_exceeded:
+                has_exceeded = True
+                _logger.warning('The ready code takes too much time : %s' % tdiff)
+
         self.take_screenshot(prefix='failed_ready')
         _logger.info('Ready code last try result: %s' % last_bad_res or res)
         return False
