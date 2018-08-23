@@ -10,6 +10,7 @@ import inspect
 import json
 import logging
 import os
+import platform
 import shutil
 import subprocess
 import tempfile
@@ -25,6 +26,8 @@ import werkzeug
 import werkzeug.urls
 from datetime import datetime
 from decorator import decorator
+
+from odoo.tools.misc import find_in_path
 
 try:
     from unittest.mock import patch
@@ -364,10 +367,10 @@ class ChromeBrowser():
         self.ws_url = ''  # WebSocketUrl
         self.ws = None  # websocket
         self.request_id = 0
-        self.user_data_dir = ''
+        self.user_data_dir = tempfile.mkdtemp(suffix='_chrome_odoo')
         self.chrome_process = None
         self.screencast_frames = []
-        self._chrome_start(['google-chrome'], self.user_data_dir)
+        self._chrome_start()
         _logger.info('Websocket url found: %s' % self.ws_url)
         self._open_websocket()
         _logger.info('Enable chrome headless console log notification')
@@ -387,7 +390,32 @@ class ChromeBrowser():
             _logger.info('Removing chrome user profile "%s"' % self.user_data_dir)
             shutil.rmtree(self.user_data_dir)
 
-    def _chrome_start(self, cmd, user_data_dir):
+    @property
+    def executable(self):
+        system = platform.system()
+        if system == 'Linux':
+            for bin_ in ['google-chrome', 'chromium']:
+                try:
+                    return find_in_path(bin_)
+                except IOError:
+                    continue
+
+        elif system == 'Darwin':
+            bins = [
+                '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+                '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            ]
+            for bin_ in bins:
+                if os.path.exists(bin_):
+                    return bin_
+
+        elif system == 'Windows':
+            # TODO: handle windows platform: https://stackoverflow.com/a/40674915
+            pass
+
+        raise unittest.SkipTest("Chrome executable not found")
+
+    def _chrome_start(self):
         if self.chrome_process is not None:
             return
         switches = {
@@ -396,11 +424,12 @@ class ChromeBrowser():
             '--no-default-browser-check': '',
             '--no-first-run': '',
             '--disable-extensions': '',
-            '--user-data-dir': user_data_dir,
+            '--user-data-dir': self.user_data_dir,
             '--disable-translate': '',
             '--window-size': '1366x768',
             '--remote-debugging-port': str(self.devtools_port)
         }
+        cmd = [self.executable]
         cmd += ['%s=%s' % (k, v) if v else k for k, v in switches.items()]
         url = 'about:blank'
         cmd.append(url)
@@ -414,7 +443,6 @@ class ChromeBrowser():
         _logger.info('Browser version: %s' % version['Browser'])
         infos = self._json_command('')[0]  # Infos about the first tab
         self.ws_url = infos['webSocketDebuggerUrl']
-        self.user_data_dir = tempfile.mkdtemp(suffix='_chrome_odoo')
         _logger.info('Chrome headless temporary user profile dir: %s' % self.user_data_dir)
 
     def _json_command(self, command, timeout=3):
