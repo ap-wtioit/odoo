@@ -811,6 +811,9 @@ class HttpCase(TransactionCase):
         """
         if not hasattr(self, '_logger'):
             self._logger = logging.getLogger(__name__)
+        # increase timeout if coverage is running
+        if any(f.filename.endswith('/coverage/execfile.py') for f in inspect.stack()  if f.filename):
+            timeout = timeout * 1.5
         self.start_browser(self._logger)
 
         try:
