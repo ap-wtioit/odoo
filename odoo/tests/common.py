@@ -5,41 +5,26 @@ helpers and classes to write tests.
 
 """
 import base64
-import collections
-import errno
-import glob
 import importlib
+import itertools
 import json
 import logging
 import os
-import re
-import requests
-import select
 import shutil
-import socket
 import subprocess
-import sys
 import tempfile
+import unittest
+from contextlib import contextmanager
+
+import requests
 import threading
 import time
-import itertools
-import unittest
 import urllib2
-import xmlrpclib
 import websocket
-import werkzeug.urls
-from contextlib import contextmanager
-from datetime import datetime, timedelta
-from pprint import pformat
-
 import werkzeug
+import werkzeug.urls
+from datetime import datetime
 from decorator import decorator
-from lxml import etree, html
-
-from odoo.models import BaseModel
-from odoo.osv.expression import normalize_domain
-from odoo.tools import pycompat
-from odoo.tools.safe_eval import safe_eval
 
 try:
     from itertools import zip_longest as izip_longest
@@ -561,8 +546,8 @@ class HttpCase(TransactionCase):
         super(HttpCase, self).setUp()
 
         if self.registry_test_mode:
-            self.registry.enter_test_mode(self.cr)
-            self.addCleanup(self.registry.leave_test_mode)
+            self.registry.enter_test_mode()
+            #self.addCleanup(self.registry.leave_test_mode)
         # setup a magic session_id that will be rollbacked
         self.session = odoo.http.root.session_store.new()
         self.session_id = self.session.sid
