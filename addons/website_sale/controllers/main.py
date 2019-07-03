@@ -809,6 +809,13 @@ class WebsiteSale(http.Controller):
     # Payment
     # ------------------------------------------------------
 
+    def _get_payment_acquirers_domain(self, order):
+        return expression.AND([
+            ['&', ('state', 'in', ['enabled', 'test']), ('company_id', '=', order.company_id.id)],
+            ['|', ('website_id', '=', False), ('website_id', '=', request.website.id)],
+            ['|', ('country_ids', '=', False), ('country_ids', 'in', [order.partner_id.country_id.id])]
+        ])
+
     def _get_shop_payment_values(self, order, **kwargs):
         values = dict(
             website_sale_order=order,
@@ -820,11 +827,7 @@ class WebsiteSale(http.Controller):
             bootstrap_formatting= True
         )
 
-        domain = expression.AND([
-            ['&', ('state', 'in', ['enabled', 'test']), ('company_id', '=', order.company_id.id)],
-            ['|', ('website_id', '=', False), ('website_id', '=', request.website.id)],
-            ['|', ('country_ids', '=', False), ('country_ids', 'in', [order.partner_id.country_id.id])]
-        ])
+        domain = self._get_payment_acquirers_domain(order)
         acquirers = request.env['payment.acquirer'].search(domain)
 
         values['access_token'] = order.access_token
