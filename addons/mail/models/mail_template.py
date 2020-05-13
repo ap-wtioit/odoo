@@ -13,6 +13,7 @@ from werkzeug import urls
 
 from odoo import _, api, fields, models, tools
 from odoo.exceptions import UserError
+from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 
@@ -429,7 +430,10 @@ class MailTemplate(models.Model):
             if template.report_template:
                 for res_id in template_res_ids:
                     attachments = []
-                    report_name = self._render_template(template.report_name, template.model, res_id)
+                    report_name = template.report_name
+                    if 'record.' in template.report_name:
+                        report_name = safe_eval(template.report_name, locals_dict={'record': self.env[template.model].browse(res_id)})
+                    report_name = self._render_template(report_name, template.model, res_id)
                     report = template.report_template
                     report_service = report.report_name
 
