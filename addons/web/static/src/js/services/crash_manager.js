@@ -156,7 +156,7 @@ var CrashManager = AbstractService.extend({
                 }
                 self.show_error({
                     type: _t("Odoo Client Error"),
-                    message: '',
+                    message: ev.reason.message,
                     data: {debug: _t('Traceback:') + "\n" + traceback},
                 });
             } else {
