@@ -3343,7 +3343,7 @@ class AccountMoveLine(models.Model):
                     failed_check = account not in journal.account_control_ids
 
             if failed_check:
-                raise UserError(_('You cannot use this general account in this journal, check the tab \'Entry Controls\' on the related journal.'))
+                raise UserError(_("You cannot use %s in %s, check the tab 'Entry Controls' on the related journal.") % (account.display_name, journal.display_name))
 
     @api.constrains('account_id', 'tax_ids', 'tax_line_id', 'reconciled')
     def _check_off_balance(self):
