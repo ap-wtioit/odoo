@@ -160,6 +160,7 @@ class FloatConverter(models.AbstractModel):
         options = super(FloatConverter, self).get_available_options()
         options.update(
             precision=dict(type='integer', string=_('Rounding precision')),
+            display_currency=dict(type='model', params='res.currency', string=_('Display currency'),required="value_to_html"),
         )
         return options
 
@@ -185,6 +186,22 @@ class FloatConverter(models.AbstractModel):
         if precision is None:
             formatted = re.sub(r'(?:(0|\d+?)0+)$', r'\1', formatted)
 
+        if options.get('non-trailing-zero'):
+            if float(value).is_integer():
+                formatted = self.user_lang().format('%i', value, grouping=True).replace(r'-', u'-\N{ZERO WIDTH NO-BREAK SPACE}')
+            else:
+                formatted = formatted.rstrip('0').rstrip('.').rstrip(',')
+
+        display_currency = options.get('display_currency')
+        if display_currency:
+            pre = post = u''
+            if display_currency.position == 'before':
+                pre = u'{symbol}\N{NO-BREAK SPACE}'.format(symbol=display_currency.symbol or '')
+            else:
+                post = u'\N{NO-BREAK SPACE}{symbol}'.format(symbol=display_currency.symbol or '')
+
+            formatted =  u'{pre}<span class="oe_currency_value">{0}</span>{post}'.format(formatted, pre=pre, post=post)
+
         return pycompat.to_text(formatted)
 
     @api.model
@@ -192,6 +209,11 @@ class FloatConverter(models.AbstractModel):
         if 'precision' not in options and 'decimal_precision' not in options:
             _, precision = record._fields[field_name].get_digits(record.env) or (None, None)
             options = dict(options, precision=precision)
+
+        if options.get('non-trailing-zero'):
+            result = super(FloatConverter, self).record_to_html(record, field_name, options)
+            return result
+
         return super(FloatConverter, self).record_to_html(record, field_name, options)
 
 
