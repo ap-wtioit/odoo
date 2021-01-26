@@ -72,8 +72,12 @@ class PaypalController(http.Controller):
             # fetch the PDT token
             post['at'] = tx and tx.acquirer_id.paypal_pdt_token or ''
             post['cmd'] = '_notify-synch'  # command is different in PDT than IPN/DPN
-        urequest = requests.post(paypal_url, post)
-        urequest.raise_for_status()
+        try:
+            urequest = requests.post(paypal_url, post)
+            urequest.raise_for_status()
+        except Exception as e:
+            _logger.exception(e)
+            raise e
         resp = urequest.text
         if pdt_request:
             resp, post = self._parse_pdt_response(resp)
