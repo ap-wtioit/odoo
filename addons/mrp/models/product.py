@@ -110,6 +110,8 @@ class ProductProduct(models.Model):
         with 'phantom' as BoM type.
         """
         bom_kits = self.env['mrp.bom']._get_product2bom(self, bom_type='phantom')
+        if self.env.context.get('ignore_kits'):
+            return super(ProductProduct, self)._compute_quantities_dict(lot_id, owner_id, package_id, from_date=from_date, to_date=to_date)
         kits = self.filtered(lambda p: bom_kits.get(p))
         res = super(ProductProduct, self - kits)._compute_quantities_dict(lot_id, owner_id, package_id, from_date=from_date, to_date=to_date)
         for product in bom_kits:
