@@ -24,7 +24,197 @@
             1c, 1d und 1e (Umsätze ab 01.07.2010)
             auf den Leistungsempfänger übergegangen ist. -->
         <record id="account_tax_template_sales_rev_charge_0_code021" model="account.tax.template">
-            <field name="name">UST_021 Steuerschuld betrifft Leistungsempfänger</field>
+            <field name="name">UST_021 § 19 Abs. 1 zweiter Satz (Steuerschuld betrifft Leistungsempfänger)</field>
+            <field name="description">USt. 0%</field>
+            <field name="chart_template_id" ref="l10n_at_chart_template" />
+            <field name="sequence">400</field>
+            <field name="type_tax_use">sale</field>
+            <field eval="0.0" name="amount" />
+            <field name="amount_type">percent</field>
+            <field name="price_include" eval="0" />
+            <field name="active" eval="False" />
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+        </record>
+        <record id="account_tax_template_sales_rev_charge_0_code021_1a" model="account.tax.template">
+            <field name="name">UST_021 § 19 Abs. 1a (Steuerschuld betrifft Leistungsempfänger)</field>
+            <field name="description">USt. 0%</field>
+            <field name="chart_template_id" ref="l10n_at_chart_template" />
+            <field name="sequence">400</field>
+            <field name="type_tax_use">sale</field>
+            <field eval="0.0" name="amount" />
+            <field name="amount_type">percent</field>
+            <field name="price_include" eval="0" />
+            <field name="active" eval="False" />
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+        </record>
+        <record id="account_tax_template_sales_rev_charge_0_code021_1b" model="account.tax.template">
+            <field name="name">UST_021 § 19 Abs. 1b (Steuerschuld betrifft Leistungsempfänger)</field>
+            <field name="description">USt. 0%</field>
+            <field name="chart_template_id" ref="l10n_at_chart_template" />
+            <field name="sequence">400</field>
+            <field name="type_tax_use">sale</field>
+            <field eval="0.0" name="amount" />
+            <field name="amount_type">percent</field>
+            <field name="price_include" eval="0" />
+            <field name="active" eval="False" />
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+        </record>
+        <record id="account_tax_template_sales_rev_charge_0_code021_1c" model="account.tax.template">
+            <field name="name">UST_021 § 19 Abs. 1c (Steuerschuld betrifft Leistungsempfänger)</field>
+            <field name="description">USt. 0%</field>
+            <field name="chart_template_id" ref="l10n_at_chart_template" />
+            <field name="sequence">400</field>
+            <field name="type_tax_use">sale</field>
+            <field eval="0.0" name="amount" />
+            <field name="amount_type">percent</field>
+            <field name="price_include" eval="0" />
+            <field name="active" eval="False" />
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+        </record>
+        <record id="account_tax_template_sales_rev_charge_0_code021_1d" model="account.tax.template">
+            <field name="name">UST_021 § 19 Abs. 1d (Steuerschuld betrifft Leistungsempfänger)</field>
+            <field name="description">USt. 0%</field>
+            <field name="chart_template_id" ref="l10n_at_chart_template" />
+            <field name="sequence">400</field>
+            <field name="type_tax_use">sale</field>
+            <field eval="0.0" name="amount" />
+            <field name="amount_type">percent</field>
+            <field name="price_include" eval="0" />
+            <field name="active" eval="False" />
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'plus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'base',
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+
+                (0,0,{
+                  'factor_percent': 100,
+                  'repartition_type': 'tax',
+                  'account_id': ref('chart_at_template_3505'),
+                  'minus_report_line_ids': [ref('tax_report_line_l10n_at_tva_line_4_3')],
+                }),
+            ]"/>
+        </record>
+        <record id="account_tax_template_sales_rev_charge_0_code021_1e" model="account.tax.template">
+            <field name="name">UST_021 § 19 Abs. 1e (Steuerschuld betrifft Leistungsempfänger)</field>
             <field name="description">USt. 0%</field>
             <field name="chart_template_id" ref="l10n_at_chart_template" />
             <field name="sequence">400</field>
